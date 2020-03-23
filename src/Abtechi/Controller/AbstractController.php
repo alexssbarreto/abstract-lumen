@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 class AbstractController extends Controller
 {
 
+    
     protected $application;
 
     protected $validator = AbstractValidator::class;
