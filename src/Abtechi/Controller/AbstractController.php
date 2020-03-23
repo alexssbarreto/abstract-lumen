@@ -28,11 +28,26 @@ class AbstractController extends Controller
         }
     }
 
-    public function listar(Request $request)
+    /**
+     * Lista um ou todos os registros
+     * @param null $id
+     * @param Request $request
+     * @return mixed
+     */
+    public function listar($id = null, Request $request)
     {
-        return $this->application->findAll();
+        if ($id) {
+            return $this->application->find($id);
+        }
+
+        return $this->application->findAll($request);
     }
 
+    /**
+     * Inclui novo registro
+     * @param Request $request
+     * @return mixed
+     */
     public function incluir(Request $request)
     {
         $this->validate($request, $this->validator::$rules, $this->validator::$messages);
@@ -40,6 +55,12 @@ class AbstractController extends Controller
         return $this->application->create($request);
     }
 
+    /**
+     * Editar um registro
+     * @param $id
+     * @param Request $request
+     * @return mixed
+     */
     public function editar($id, Request $request)
     {
         $this->validate($request, $this->validator::$rules, $this->validator::$messages);
@@ -53,6 +74,12 @@ class AbstractController extends Controller
         return response(null, 204);
     }
 
+    /**
+     * Exclui um registro
+     * @param $id
+     * @param Request $request
+     * @return mixed
+     */
     public function excluir($id, Request $request)
     {
         return $this->application->delete($id);
