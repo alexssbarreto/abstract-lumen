@@ -1,8 +1,8 @@
 <?php
 
-namespace Abtechi\Controllers;
+namespace Abtechi\Laravel\Controllers;
 
-use Abtechi\Validators\AbstractValidator;
+use Abtechi\Laravel\Validators\AbstractValidator;
 use Illuminate\Http\Request;
 
 class AbstractController extends Controller

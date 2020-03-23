@@ -1,6 +1,6 @@
 <?php
 
-namespace Abtechi\Validators;
+namespace Abtechi\Laravel\Validators;
 
 
 abstract class AbstractValidator

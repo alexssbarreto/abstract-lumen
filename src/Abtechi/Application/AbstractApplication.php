@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Application;
+namespace Abtechi\Laravel\Application;
 
-use Abtechi\Repository\AbstractRepository;
+use Abtechi\Laravel\Repository\AbstractRepository;
 use Illuminate\Http\Request;
 
 abstract class AbstractApplication

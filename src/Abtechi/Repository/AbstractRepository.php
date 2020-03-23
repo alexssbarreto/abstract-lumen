@@ -1,6 +1,6 @@
 <?php
 
-namespace Abtechi\Repository;
+namespace Abtechi\Laravel\Repository;
 
 use Illuminate\Database\Eloquent\Model;
 
