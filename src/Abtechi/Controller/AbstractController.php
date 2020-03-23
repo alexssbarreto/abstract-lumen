@@ -2,13 +2,15 @@
 
 namespace Abtechi\Laravel\Controller;
 
+use Abtechi\Laravel\Application\AbstractApplication;
 use Abtechi\Laravel\Validators\AbstractValidator;
+use Laravel\Lumen\Routing\Controller;
 use Illuminate\Http\Request;
 
 class AbstractController extends Controller
 {
 
-    
+
     protected $application;
 
     protected $validator = AbstractValidator::class;
