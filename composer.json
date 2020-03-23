@@ -1,7 +1,11 @@
 {
   "name": "abtechi/abstract-laravel-lumen",
   "description": "Abstract architecture in Laravel Lumen",
-  "keywords": ["laravel", "lumen", "architecture"],
+  "keywords": [
+    "laravel",
+    "lumen",
+    "architecture"
+  ],
   "homepage": "",
   "license": "MIT",
   "authors": [
@@ -15,7 +19,7 @@
     "email": "alexssb2003@gmail.com"
   },
   "require": {
-    "php" : ">=5.4.0",
+    "php": ">=5.4.0",
     "laravel/lumen": "~7.0"
   },
   "require-dev": {
@@ -27,5 +31,7 @@
     "psr-4": {
       "Oreilly\\ModernPHP\\": "src/"
     }
-  }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }
