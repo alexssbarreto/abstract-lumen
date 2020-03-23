@@ -1,6 +1,6 @@
 <?php
 
-namespace Abtechi\Laravel\Controllers;
+namespace Abtechi\Laravel\Controller;
 
 use Abtechi\Laravel\Validators\AbstractValidator;
 use Illuminate\Http\Request;
