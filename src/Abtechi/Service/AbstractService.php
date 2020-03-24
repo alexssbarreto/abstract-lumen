@@ -42,9 +42,16 @@ abstract class AbstractService
      * @param Request $request
      * @return Result
      */
-    public function findAll( $request)
+    public function findAll(Request $request)
     {
-        $result = $this->repository->findAll();
+        $pageSize = null;
+        if ($request->has('page_size')) {
+            $pageSize = $request->get('page_size');
+        }
+
+        $params = $request->except(['page_number', 'page_size']) ? $request->except(['page_number', 'page_size']) : ['*'];
+
+        $result = $this->repository->findAll($params, $pageSize);
 
         return new Result(true, null, $result);
     }

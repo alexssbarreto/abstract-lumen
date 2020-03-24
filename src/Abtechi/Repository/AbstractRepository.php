@@ -2,7 +2,11 @@
 
 namespace Abtechi\Laravel\Repository;
 
+use App\Model\Unidade;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Classe base para manipulação dos dados utilizando
@@ -13,8 +17,20 @@ use Illuminate\Database\Eloquent\Model;
 abstract class AbstractRepository
 {
 
+    protected $pageSizeMax = 200;
+
+    protected $page = 1;
+
     /** @var Model */
     public static $model = Model::class;
+
+    private $describesText = [
+        'varchar',
+        'text',
+        'longtext',
+        'mediumtext',
+        'tinytext'
+    ];
 
     /**
      * Recupera um registro
@@ -30,9 +46,40 @@ abstract class AbstractRepository
      * @param array $params
      * @return mixed
      */
-    public function findAll(array $params = ['*'])
+    public function findAll(array $params = ['*'], $pageSize = 15)
     {
-        return static::$model::all($params);
+        if ($pageSize && $pageSize > $this->pageSizeMax) {
+            $pageSize = $this->pageSizeMax;
+        }
+
+        /** @var Model $model */
+        $model = new static::$model;
+
+        $describe = DB::select('describe ' . $model->getTable());
+
+        $querySelect = clone $model;
+
+        foreach ($params as $key => $value) {
+            if (Schema::hasColumn($model->getTable(), $key)) {
+                $column = array_filter($describe, function($column) use($key, $value, &$querySelect){
+                    if ($column->Field == $key) {
+                        if (in_array(strtolower(explode('(', $column->Type)[0]), $this->describesText)) {
+                            $querySelect = $querySelect->where($key, 'LIKE', '%' . $value . '%');
+
+                            return $column;
+                        }
+                    }
+                });
+
+                if ($column) {
+                    continue;
+                }
+
+                $querySelect = $querySelect->where($key, $value);
+            }
+        }
+
+        return $querySelect->simplePaginate($pageSize);
     }
 
     /**
