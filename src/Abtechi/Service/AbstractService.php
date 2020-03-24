@@ -63,7 +63,13 @@ abstract class AbstractService
      */
     public function create(Request $request)
     {
-        $result = $this->repository->add($request->all());
+        $validate = $this->validateCreate($request);
+
+        if (!$validate->isResult()) {
+            return $validate;
+        }
+
+        $result = $this->repository->add($request->post());
 
         if (!$result) {
             return new Result(false);
@@ -80,13 +86,19 @@ abstract class AbstractService
      */
     public function update($id, Request $request)
     {
+        $validate = $this->validateUpdate($request);
+
+        if (!$validate->isResult()) {
+            return $validate;
+        }
+
         $row = $this->repository->find($id);
 
         if (!$row) {
             return new Result(false);
         }
 
-        $result = $this->repository->update($row, $request->all());
+        $result = $this->repository->update($row, $request->post());
 
         if (!$result) {
             return new Result(false, 'Não foi possível atualizar o registro.');
@@ -115,5 +127,25 @@ abstract class AbstractService
         }
 
         return new Result(true);
+    }
+
+    /**
+     * Realiza validações para criação de dados
+     * @param Request $request
+     * @return Result
+     */
+    public function validateCreate(Request $request)
+    {
+        return new Result(true);
+    }
+
+    /**
+     * Realiza validações para atualização de dados
+     * @param Request $request
+     * @return Result
+     */
+    public function validateUpdate(Request $request)
+    {
+        return $this->validateCreate($request);
     }
 }

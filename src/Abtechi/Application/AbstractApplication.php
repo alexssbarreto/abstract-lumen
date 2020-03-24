@@ -48,7 +48,7 @@ abstract class AbstractApplication
      */
     public function create(Request $request)
     {
-        $result = $this->service->create($request->all());
+        $result = $this->service->create($request);
 
         if (!$result->isResult()) {
             return response('', 400);
