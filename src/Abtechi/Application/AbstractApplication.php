@@ -2,21 +2,20 @@
 
 namespace Abtechi\Laravel\Application;
 
-use Abtechi\Laravel\Repository\AbstractRepository;
+use Abtechi\Laravel\Service\AbstractService;
 use Illuminate\Http\Request;
 
 abstract class AbstractApplication
 {
-    protected $repository;
+    protected $service;
 
     /**
-     * Instância de acesso ao banco de dados
      * AbstractApplication constructor.
-     * @param AbstractRepository $repository
+     * @param $service
      */
-    public function __construct(AbstractRepository $repository)
+    public function __construct(AbstractService $service)
     {
-        $this->repository = $repository;
+        $this->service = $service;
     }
 
     /**
@@ -26,9 +25,9 @@ abstract class AbstractApplication
      */
     public function find($id)
     {
-        $result = $this->repository->find($id);
+        $result = $this->service->find($id);
 
-        return response($result, 200);
+        return response($result->getData(), 200);
     }
 
     /**
@@ -37,9 +36,9 @@ abstract class AbstractApplication
      */
     public function findAll(Request $request)
     {
-        $result = $this->repository->findAll();
+        $result = $this->service->findAll($request);
 
-        return response($result, 200);
+        return response($result->getData(), 200);
     }
 
     /**
@@ -49,13 +48,13 @@ abstract class AbstractApplication
      */
     public function create(Request $request)
     {
-        $result = $this->repository->add($request->all());
+        $result = $this->service->create($request->all());
 
-        if (!$result) {
+        if (!$result->isResult()) {
             return response('', 400);
         }
 
-        return response($result, 201);
+        return response($result->getData(), 201);
     }
 
     /**
@@ -66,15 +65,13 @@ abstract class AbstractApplication
      */
     public function update($id, Request $request)
     {
-        $row = $this->repository->find($id);
+        $result = $this->service->update($id, $request);
 
-        if (!$row) {
+        if (!$result->isResult() && !$result->getMessage()) {
             return response('', 404);
         }
 
-        $result = $this->repository->update($row, $request->all());
-
-        if (!$result) {
+        if (!$result->isResult() && $result->getMessage()) {
             return response('', 400);
         }
 
@@ -88,18 +85,16 @@ abstract class AbstractApplication
      */
     public function delete($id)
     {
-        $row = $this->repository->find($id);
+        $result = $this->service->delete($id);
 
-        if (!$row) {
+        if (!$result->isResult() && !$result->getMessage()) {
             return response('', 404);
         }
 
-        $result = $this->repository->delete($row);
-
-        if (!$result) {
+        if (!$result->isResult() && $result->getMessage()) {
             return response('', 400);
         }
 
-        return response('', 204);
+        return response($result, 204);
     }
 }
