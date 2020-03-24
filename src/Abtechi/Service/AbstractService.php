@@ -134,7 +134,7 @@ abstract class AbstractService
      * @param Request $request
      * @return Result
      */
-    public function validateCreate(Request $request)
+    public function validateCreate(Request &$request)
     {
         return new Result(true);
     }
@@ -144,7 +144,7 @@ abstract class AbstractService
      * @param Request $request
      * @return Result
      */
-    public function validateUpdate(Request $request)
+    public function validateUpdate(Request &$request)
     {
         return $this->validateCreate($request);
     }
