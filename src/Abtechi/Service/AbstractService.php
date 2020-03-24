@@ -4,6 +4,7 @@ namespace Abtechi\Laravel\Service;
 
 use Abtechi\Laravel\Repository\AbstractRepository;
 use Abtechi\Laravel\Result;
+use Illuminate\Http\Request;
 
 /**
  * Class AbstractService
@@ -41,7 +42,7 @@ abstract class AbstractService
      * @param Request $request
      * @return Result
      */
-    public function findAll(Request $request)
+    public function findAll( $request)
     {
         $result = $this->repository->findAll();
 
