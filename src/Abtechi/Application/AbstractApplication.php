@@ -5,6 +5,11 @@ namespace Abtechi\Laravel\Application;
 use Abtechi\Laravel\Service\AbstractService;
 use Illuminate\Http\Request;
 
+/**
+ * Application
+ * Class AbstractApplication
+ * @package Abtechi\Laravel\Application
+ */
 abstract class AbstractApplication
 {
     protected $service;
@@ -75,7 +80,7 @@ abstract class AbstractApplication
             return response('', 400);
         }
 
-        return response($result, 204);
+        return response($result->getData(), 204);
     }
 
     /**

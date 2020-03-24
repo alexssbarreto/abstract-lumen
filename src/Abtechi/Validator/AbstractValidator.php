@@ -10,6 +10,16 @@ namespace Abtechi\Laravel\Validators;
 abstract class AbstractValidator
 {
 
+    /**
+     * Atributes de dados
+     * @var array
+     */
+    public static $attributes = [];
+
+    /**
+     * Validators dos attibutes
+     * @var array
+     */
     public static $rules = [];
 
     public static $messages = [

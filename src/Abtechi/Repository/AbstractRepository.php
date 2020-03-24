@@ -2,6 +2,7 @@
 
 namespace Abtechi\Laravel\Repository;
 
+use Abtechi\Laravel\Validators\AbstractValidator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -21,6 +22,7 @@ abstract class AbstractRepository
 
     /** @var Model */
     public static $model = Model::class;
+    public static $validator = AbstractValidator::class;
 
     private $describesText = [
         'varchar',
@@ -87,11 +89,10 @@ abstract class AbstractRepository
      */
     public function add(array $data)
     {
+        /** @var Model $row */
         $row = new static::$model;
 
-        foreach ($data as $attribute => $value) {
-            $row->{$attribute} = $value;
-        }
+        $row = $this->prepareStatementAttr($row, $data);
 
         $row->save();
         $row->refresh();
@@ -107,9 +108,7 @@ abstract class AbstractRepository
      */
     public function update(Model $model, array $data)
     {
-        foreach ($data as $attribute => $value) {
-            $model->{$attribute} = $value;
-        }
+        $model = $this->prepareStatementAttr($model, $data);
 
         $model->save();
         $model->refresh();
@@ -125,5 +124,16 @@ abstract class AbstractRepository
     public function delete(Model $model)
     {
         return $model->delete();
+    }
+
+    private function prepareStatementAttr(Model $model, array $data)
+    {
+        foreach ($data as $attribute => $value) {
+            if (in_array($attribute, static::$validator::$attributes)) {
+                $model->{$attribute} = $value;
+            }
+        }
+
+        return $model;
     }
 }

@@ -65,13 +65,7 @@ class AbstractController extends Controller
     {
         $this->validate($request, $this->validator::$rules, $this->validator::$messages);
 
-        $response = $this->application->update($id, $request);
-
-        if (!$response) {
-            return response('', 404);
-        }
-
-        return response(null, 204);
+        return $this->application->update($id, $request);
     }
 
     /**
