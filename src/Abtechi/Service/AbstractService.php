@@ -38,7 +38,11 @@ abstract class AbstractService
     {
         $result = $this->repository->find($id);
 
-        return new Result(true, null, $result);
+        if ($result) {
+            return new Result(true, null, $result);
+        }
+
+        return new Result(false);
     }
 
     /**

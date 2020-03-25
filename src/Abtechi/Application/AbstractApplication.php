@@ -32,7 +32,11 @@ abstract class AbstractApplication
     {
         $result = $this->service->find($id);
 
-        return response($result->getData(), 200);
+        if ($result->isResult()) {
+            return response($result->getData(), 200);
+        }
+
+        return response($result->getData(), 404);
     }
 
     /**
@@ -100,6 +104,6 @@ abstract class AbstractApplication
             return response('', 400);
         }
 
-        return response($result, 204);
+        return response($result->getData(), 204);
     }
 }
