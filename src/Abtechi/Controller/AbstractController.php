@@ -30,14 +30,14 @@ class AbstractController extends Controller
 
     /**
      * Lista um ou todos os registros
-     * @param null $id
+     * @param null $uuid
      * @param Request $request
      * @return mixed
      */
-    public function listar($id = null, Request $request)
+    public function listar($uuid = null, Request $request)
     {
-        if ($id) {
-            return $this->application->find($id);
+        if ($uuid) {
+            return $this->application->findUuid($uuid);
         }
 
         return $this->application->findAll($request);

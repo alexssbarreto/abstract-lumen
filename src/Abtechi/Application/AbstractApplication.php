@@ -40,6 +40,22 @@ abstract class AbstractApplication
     }
 
     /**
+     * Recupera um registro pelo uuid
+     * @param $uuid
+     * @return \Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
+     */
+    public function findUuid($uuid)
+    {
+        $result = $this->service->findUuid($uuid);
+
+        if ($result->isResult()) {
+            return response($result->getData(), 200);
+        }
+
+        return response($result->getData(), 404);
+    }
+
+    /**
      * Recupera todos os registros
      * @return mixed
      */

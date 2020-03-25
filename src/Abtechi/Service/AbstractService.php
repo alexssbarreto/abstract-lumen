@@ -71,6 +71,22 @@ abstract class AbstractService
     }
 
     /**
+     * Recupera um registro pelo uuid
+     * @param $uuid
+     * @return Result
+     */
+    public function findUuid($uuid)
+    {
+        $result = $this->repository->findUuid($uuid);
+
+        if ($result->count()) {
+            return new Result(true, null, $result);
+        }
+
+        return new Result(false);
+    }
+
+    /**
      * Recupera todos os registros
      * @param Request $request
      * @return Result

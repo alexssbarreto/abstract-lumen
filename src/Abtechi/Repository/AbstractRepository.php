@@ -35,8 +35,14 @@ abstract class AbstractRepository
      * @param $id
      * @return mixed
      */
-    public function find($id) {
+    public function find($id)
+    {
         return static::$model::find($id);
+    }
+
+    public function findUuid($uuid)
+    {
+        return static::$model::where('uuid', $uuid)->get();
     }
 
     /**
