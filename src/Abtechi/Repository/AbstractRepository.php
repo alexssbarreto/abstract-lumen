@@ -2,7 +2,6 @@
 
 namespace Abtechi\Laravel\Repository;
 
-use Abtechi\Laravel\Validators\AbstractValidator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -22,7 +21,6 @@ abstract class AbstractRepository
 
     /** @var Model */
     public static $model = Model::class;
-    public static $validator = AbstractValidator::class;
 
     private $describesText = [
         'varchar',
@@ -39,6 +37,15 @@ abstract class AbstractRepository
      */
     public function find($id) {
         return static::$model::find($id);
+    }
+
+    /**
+     * Retorna o model modelo
+     * @return Model
+     */
+    public function getModel()
+    {
+        return static::$model;
     }
 
     /**
@@ -84,32 +91,24 @@ abstract class AbstractRepository
 
     /**
      * Cadastra um novo registro
-     * @param array $data
-     * @return mixed
+     * @param Model $model
+     * @return Model
      */
-    public function add(array $data)
+    public function add(Model $model)
     {
-        /** @var Model $row */
-        $row = new static::$model;
+        $model->save();
+        $model->refresh();
 
-        $row = $this->prepareStatementAttr($row, $data);
-
-        $row->save();
-        $row->refresh();
-
-        return $row;
+        return $model;
     }
 
     /**
      * Atualiza um registro
      * @param Model $model
-     * @param array $data
      * @return Model
      */
-    public function update(Model $model, array $data)
+    public function update(Model $model)
     {
-        $model = $this->prepareStatementAttr($model, $data);
-
         $model->save();
         $model->refresh();
 
@@ -124,16 +123,5 @@ abstract class AbstractRepository
     public function delete(Model $model)
     {
         return $model->delete();
-    }
-
-    private function prepareStatementAttr(Model $model, array $data)
-    {
-        foreach ($data as $attribute => $value) {
-            if (in_array($attribute, static::$validator::$attributes)) {
-                $model->{$attribute} = $value;
-            }
-        }
-
-        return $model;
     }
 }

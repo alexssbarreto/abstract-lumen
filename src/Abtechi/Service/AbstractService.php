@@ -4,6 +4,8 @@ namespace Abtechi\Laravel\Service;
 
 use Abtechi\Laravel\Repository\AbstractRepository;
 use Abtechi\Laravel\Result;
+use Abtechi\Laravel\Validators\AbstractValidator;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 
 /**
@@ -14,6 +16,8 @@ abstract class AbstractService
 {
 
     protected $repository;
+
+    public static $validator = AbstractValidator::class;
 
     /**
      * Instância de acesso ao banco de dados
@@ -69,7 +73,10 @@ abstract class AbstractService
             return $validate;
         }
 
-        $result = $this->repository->add($request->post());
+        $row = new $this->repository::$model;
+        $row = $this->prepareStatementAttr($row, $request->post());
+
+        $result = $this->repository->add($row);
 
         if (!$result) {
             return new Result(false);
@@ -98,7 +105,9 @@ abstract class AbstractService
             return new Result(false);
         }
 
-        $result = $this->repository->update($row, $request->post());
+        $row = $this->prepareStatementAttr($row, $request->post());
+
+        $result = $this->repository->update($row);
 
         if (!$result) {
             return new Result(false, 'Não foi possível atualizar o registro.');
@@ -147,5 +156,22 @@ abstract class AbstractService
     public function validateUpdate(Request &$request)
     {
         return $this->validateCreate($request);
+    }
+
+    /**
+     * Prepara estrutura do modelo de dados
+     * @param Model $model
+     * @param array $data
+     * @return Model
+     */
+    private function prepareStatementAttr(Model $model, array $data)
+    {
+        foreach ($data as $attribute => $value) {
+            if (in_array($attribute, static::$validator::$attributes)) {
+                $model->{$attribute} = $value;
+            }
+        }
+
+        return $model;
     }
 }
