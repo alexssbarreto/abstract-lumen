@@ -8,7 +8,7 @@ namespace Abtechi\Laravel;
  */
 class Result
 {
-    protected $result,
+    public $result,
         $message,
         $data,
         $params;

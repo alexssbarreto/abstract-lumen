@@ -60,7 +60,7 @@ abstract class AbstractApplication
         $result = $this->service->create($request);
 
         if (!$result->isResult()) {
-            return response('', 400);
+            return response()->json((array)$result, 400);
         }
 
         return response($result->getData(), 201);
@@ -81,7 +81,7 @@ abstract class AbstractApplication
         }
 
         if (!$result->isResult() && $result->getMessage()) {
-            return response('', 400);
+            return response()->json((array)$result, 400);
         }
 
         return response($result->getData(), 204);
@@ -101,7 +101,7 @@ abstract class AbstractApplication
         }
 
         if (!$result->isResult() && $result->getMessage()) {
-            return response('', 400);
+            return response()->json((array)$result, 400);
         }
 
         return response($result->getData(), 204);
