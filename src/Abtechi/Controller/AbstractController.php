@@ -78,4 +78,14 @@ class AbstractController extends Controller
     {
         return $this->application->delete($id);
     }
+
+    /**
+     * Recupera a listagem em formato de options json: [chave => valor]
+     * @param Request $request
+     * @return \Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
+     */
+    public function listarOptions(Request $request)
+    {
+        return $this->application->listOptions($request);
+    }
 }

@@ -15,8 +15,33 @@ use Illuminate\Http\Request;
 abstract class AbstractService
 {
 
+    /**
+     * Estrutura de dados para options
+     * @var array
+     */
+    protected $optionsParam = [
+        'option' => 'id',
+        'value' => 'id'
+    ];
+
+    /**
+     * Ordenação nan listagem de conteúdo
+     * @var array
+     */
+    protected $orderParam = [
+        'id' => 'DESC'
+    ];
+
+    /**
+     * Acesso ao serviço Repository
+     * @var AbstractRepository
+     */
     protected $repository;
 
+    /**
+     * Validações essenciais para create and update
+     * @var string
+     */
     public static $validator = AbstractValidator::class;
 
     /**
@@ -50,7 +75,7 @@ abstract class AbstractService
      * @param Request $request
      * @return Result
      */
-    public function findAll(Request $request)
+    public function findAll(Request $request, $pagination = true)
     {
         $pageSize = null;
         if ($request->has('page_size')) {
@@ -59,7 +84,7 @@ abstract class AbstractService
 
         $params = $request->except(['page_number', 'page_size']) ? $request->except(['page_number', 'page_size']) : ['*'];
 
-        $result = $this->repository->findAll($params, $pageSize);
+        $result = $this->repository->findAll($params, $pageSize, $pagination, $this->orderParam);
 
         return new Result(true, null, $result);
     }
@@ -163,6 +188,45 @@ abstract class AbstractService
     }
 
     /**
+     * Prepara estrutura de dados para opções: chave => valor
+     * @param Request $request
+     * @return Result
+     * @throws \Exception
+     */
+    public function listarOptions(Request $request)
+    {
+        $result = $this->findAll($request, false);
+
+        if (!$result->isResult()) {
+            return new Result(true, null, []);
+        }
+
+        if (!is_array($this->optionsParam) || count($this->optionsParam) !== 2) {
+            throw new \Exception('Obrigatório que a configuração dos parâmetros dos options seja um array [option => option, value => value]');
+        }
+
+        $aResult = [];
+
+        /** @var Model $row */
+        foreach ($result->getData() as $row) {
+            if (!$row->getAttribute($this->optionsParam['value'])) {
+                throw new \Exception('O value option não existe no $optionsParam["value"]');
+            }
+
+            if (!$row->getAttribute($this->optionsParam['option'])) {
+                throw new \Exception('O value option não existe no $optionsParam["option"]');
+            }
+
+            $aResult[] = [
+                'value'  => $row->{$this->optionsParam['value']},
+                'option' => $row->{$this->optionsParam['option']}
+            ];
+        }
+
+        return new Result(true, null, $aResult);
+    }
+
+    /**
      * Prepara estrutura do modelo de dados
      * @param Model $model
      * @param array $data
@@ -172,7 +236,7 @@ abstract class AbstractService
     {
         foreach ($data as $attribute => $value) {
             if (in_array($attribute, static::$validator::$attributes)) {
-                $model->{$attribute} = $value;
+                $model->{$attribute} = trim($value);
             }
         }
 

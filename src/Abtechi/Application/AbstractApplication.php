@@ -106,4 +106,16 @@ abstract class AbstractApplication
 
         return response($result->getData(), 204);
     }
+
+    /**
+     * Recupera estrutura de opções: chave => valor
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function listOptions(Request $request)
+    {
+        $result = $this->service->listarOptions($request);
+
+        return response()->json((array)$result->getData(), 200);
+    }
 }

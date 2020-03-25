@@ -49,11 +49,15 @@ abstract class AbstractRepository
     }
 
     /**
-     * Recupera todos os registros
+     * Recupera os registros aplicando paginação e ordenação
      * @param array $params
+     * @param int $pageSize
+     * @param bool $pagination
+     * @param array $order
      * @return mixed
+     * @throws \Exception
      */
-    public function findAll(array $params = ['*'], $pageSize = 15)
+    public function findAll(array $params = ['*'], $pageSize = 15, $pagination = true, $order = [])
     {
         if ($pageSize && $pageSize > $this->pageSizeMax) {
             $pageSize = $this->pageSizeMax;
@@ -68,17 +72,9 @@ abstract class AbstractRepository
 
         foreach ($params as $key => $value) {
             if (Schema::hasColumn($model->getTable(), $key)) {
-                $column = array_filter($describe, function($column) use($key, $value, &$querySelect){
-                    if ($column->Field == $key) {
-                        if (in_array(strtolower(explode('(', $column->Type)[0]), $this->describesText)) {
-                            $querySelect = $querySelect->where($key, 'LIKE', '%' . $value . '%');
+                if ($this->hasAttributeDescribe($key, $describe, true)) {
+                    $querySelect = $querySelect->where($key, 'LIKE', '%' . $value . '%');
 
-                            return $column;
-                        }
-                    }
-                });
-
-                if ($column) {
                     continue;
                 }
 
@@ -86,7 +82,21 @@ abstract class AbstractRepository
             }
         }
 
-        return $querySelect->simplePaginate($pageSize);
+        if ($order) {
+            foreach ($order as $key => $option) {
+                if (!$this->hasAttributeDescribe($key, $describe)) {
+                    throw new \Exception(sprintf('Atibuto de ordenação não existe: %s', $key));
+                }
+
+                $querySelect = $querySelect->orderBy($key, $option);
+            }
+        }
+
+        if ($pagination) {
+            return $querySelect->simplePaginate($pageSize);
+        }
+
+        return $querySelect->get();
     }
 
     /**
@@ -123,5 +133,34 @@ abstract class AbstractRepository
     public function delete(Model $model)
     {
         return $model->delete();
+    }
+
+    /**
+     * Checa se attibute possui nas descrições da tabela
+     * @param $attribute
+     * @param array $describe
+     * @return bool
+     */
+    private function hasAttributeDescribe($attribute, array $describe, $verifyIsText = false)
+    {
+        $hasAttribute = array_filter($describe, function($column) use($attribute, $verifyIsText){
+            if ($attribute == $column->Field) {
+                if (!$verifyIsText) {
+                    return true;
+                }
+
+                if (in_array(strtolower(explode('(', $column->Type)[0]), $this->describesText)) {
+                    return true;
+                }
+
+                return false;
+            }
+        });
+
+        if ($hasAttribute) {
+            return true;
+        }
+
+        return false;
     }
 }
