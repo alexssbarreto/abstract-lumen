@@ -40,9 +40,14 @@ abstract class AbstractRepository
         return static::$model::find($id);
     }
 
+    /**
+     * Recupera um registro pelo uuid
+     * @param $uuid
+     * @return mixed
+     */
     public function findUuid($uuid)
     {
-        return static::$model::where('uuid', $uuid)->get();
+        return static::$model::firstWhere('uuid', $uuid);
     }
 
     /**
@@ -55,6 +60,32 @@ abstract class AbstractRepository
     }
 
     /**
+     * Cadastra um novo registro
+     * @param Model $model
+     * @return Model
+     */
+    public function add(Model $model, array $data = [])
+    {
+        $model->save();
+        $model->refresh();
+
+        return $model;
+    }
+
+    /**
+     * Atualiza um registro
+     * @param Model $model
+     * @return Model
+     */
+    public function update(Model $model, array $data = [])
+    {
+        $model->save();
+        $model->refresh();
+
+        return $model;
+    }
+
+    /**
      * Recupera os registros aplicando paginação e ordenação
      * @param array $params
      * @param int $pageSize
@@ -63,7 +94,7 @@ abstract class AbstractRepository
      * @return mixed
      * @throws \Exception
      */
-    public function findAll(array $params = ['*'], $pageSize = 15, $pagination = true, $order = [])
+    public function findAll(array $params = [], array $order = [], $pagination = true, $pageSize = 15)
     {
         if ($pageSize && $pageSize > $this->pageSizeMax) {
             $pageSize = $this->pageSizeMax;
@@ -76,15 +107,17 @@ abstract class AbstractRepository
 
         $querySelect = clone $model;
 
-        foreach ($params as $key => $value) {
-            if (Schema::hasColumn($model->getTable(), $key)) {
-                if ($this->hasAttributeDescribe($key, $describe, true)) {
-                    $querySelect = $querySelect->where($key, 'LIKE', '%' . $value . '%');
+        if ($params) {
+            foreach ($params as $key => $value) {
+                if (Schema::hasColumn($model->getTable(), $key)) {
+                    if ($this->hasAttributeDescribe($key, $describe, true)) {
+                        $querySelect = $querySelect->where($key, 'LIKE', '%' . $value . '%');
 
-                    continue;
+                        continue;
+                    }
+
+                    $querySelect = $querySelect->where($key, $value);
                 }
-
-                $querySelect = $querySelect->where($key, $value);
             }
         }
 
@@ -103,32 +136,6 @@ abstract class AbstractRepository
         }
 
         return $querySelect->get();
-    }
-
-    /**
-     * Cadastra um novo registro
-     * @param Model $model
-     * @return Model
-     */
-    public function add(Model $model)
-    {
-        $model->save();
-        $model->refresh();
-
-        return $model;
-    }
-
-    /**
-     * Atualiza um registro
-     * @param Model $model
-     * @return Model
-     */
-    public function update(Model $model)
-    {
-        $model->save();
-        $model->refresh();
-
-        return $model;
     }
 
     /**

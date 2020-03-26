@@ -2,6 +2,7 @@
 
 namespace Abtechi\Laravel\Application;
 
+use Abtechi\Laravel\Result;
 use Abtechi\Laravel\Service\AbstractService;
 use Illuminate\Http\Request;
 
@@ -12,6 +13,23 @@ use Illuminate\Http\Request;
  */
 abstract class AbstractApplication
 {
+    /**
+     * Estrutura de dados para options
+     * @var array
+     */
+    protected $optionsParam = [
+        'option' => 'id',
+        'value' => 'id'
+    ];
+
+    /**
+     * Ordenação nan listagem de conteúdo
+     * @var array
+     */
+    protected $orderParam = [
+        'id' => 'DESC'
+    ];
+
     protected $service;
 
     /**
@@ -30,108 +48,74 @@ abstract class AbstractApplication
      */
     public function find($id)
     {
-        $result = $this->service->find($id);
-
-        if ($result->isResult()) {
-            return response($result->getData(), 200);
-        }
-
-        return response($result->getData(), 404);
+        return $this->service->find($id);
     }
 
     /**
      * Recupera um registro pelo uuid
      * @param $uuid
-     * @return \Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
+     * @return Result
      */
     public function findUuid($uuid)
     {
-        $result = $this->service->findUuid($uuid);
-
-        if ($result->isResult()) {
-            return response($result->getData(), 200);
-        }
-
-        return response($result->getData(), 404);
+        return $this->service->findUuid($uuid);
     }
 
     /**
-     * Recupera todos os registros
-     * @return mixed
+     * Recupera todos os registros com paginação e filtros
+     * @param Request $request
+     * @return Result
      */
     public function findAll(Request $request)
     {
-        $result = $this->service->findAll($request);
+        $params = $request->except('page_number', 'page', 'page_size');
 
-        return response($result->getData(), 200);
+        $pageNumber = 15;
+        if ($request->has('page_number')) {
+            $pageNumber = $request->input('page_number');
+        }
+
+        return $this->service->findAll($params, $this->orderParam, true, $pageNumber);
     }
 
     /**
      * Cadastra um novo registro
      * @param Request $request
-     * @return mixed
+     * @return Result
      */
     public function create(Request $request)
     {
-        $result = $this->service->create($request);
-
-        if (!$result->isResult()) {
-            return response()->json((array)$result, 400);
-        }
-
-        return response($result->getData(), 201);
+        return $this->service->create($request->post());
     }
 
-    /**
+    /***
      * Atualiza um registro
-     * @param $id
+     * @param $uuid
      * @param Request $request
-     * @return mixed
+     * @return Result
      */
-    public function update($id, Request $request)
+    public function update($uuid, Request $request)
     {
-        $result = $this->service->update($id, $request);
-
-        if (!$result->isResult() && !$result->getMessage()) {
-            return response('', 404);
-        }
-
-        if (!$result->isResult() && $result->getMessage()) {
-            return response()->json((array)$result, 400);
-        }
-
-        return response($result->getData(), 204);
+        return $this->service->update($uuid, $request->post());
     }
 
     /**
      * Deleta uma registro
-     * @param $id
-     * @return mixed
+     * @param $uuid
+     * @return Result
      */
-    public function delete($id)
+    public function delete($uuid)
     {
-        $result = $this->service->delete($id);
-
-        if (!$result->isResult() && !$result->getMessage()) {
-            return response('', 404);
-        }
-
-        if (!$result->isResult() && $result->getMessage()) {
-            return response()->json((array)$result, 400);
-        }
-
-        return response($result->getData(), 204);
+        return $this->service->delete($uuid);
     }
 
     /**
      * Recupera estrutura de opções: chave => valor
      * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return Result
      */
     public function listOptions(Request $request)
     {
-        $result = $this->service->listarOptions($request);
-
-        return response()->json((array)$result->getData(), 200);
+        return $this->service->listarOptions($request->all(), $this->optionsParam, $this->orderParam);
     }
 }

@@ -37,6 +37,28 @@ class AbstractController extends Controller
     public function listar($uuid = null, Request $request)
     {
         if ($uuid) {
+            $result = $this->application->findUuid($uuid);
+        } else {
+            $result = $this->application->findAll($request);
+        }
+
+        if ($result->isResult()) {
+            return response($result->getData(), 200);
+        }
+
+        return response($result->getData(), 404);
+    }
+
+    public function visualizar($uuid = null, Request $request)
+    {
+        die('oi');
+
+        echo '<pre>';
+        var_dump(func_num_args());
+        var_dump($request->all());
+        var_dump($request->get); die('aqui');
+
+        if ($uuid) {
             return $this->application->findUuid($uuid);
         }
 
@@ -52,31 +74,69 @@ class AbstractController extends Controller
     {
         $this->validate($request, $this->validator::$rules, $this->validator::$messages);
 
-        return $this->application->create($request);
+        $result = $this->application->create($request);
+
+        if (!$result->isResult() && !$result->getMessage()) {
+            return response('', 404);
+        }
+
+        if (!$result->isResult() && $result->getMessage()) {
+            return response()->json((array)$result, 400);
+        }
+
+        if ($result->getData()) {
+            return response()->json($result->getData(), 201);
+        }
+
+        return response(null, 204);
     }
 
     /**
      * Editar um registro
-     * @param $id
+     * @param $uuid
      * @param Request $request
      * @return mixed
      */
-    public function editar($id, Request $request)
+    public function editar($uuid, Request $request)
     {
         $this->validate($request, $this->validator::$rules, $this->validator::$messages);
 
-        return $this->application->update($id, $request);
+        $result = $this->application->update($uuid, $request);
+
+        if (!$result->isResult() && !$result->getMessage()) {
+            return response('', 404);
+        }
+
+        if (!$result->isResult() && $result->getMessage()) {
+            return response()->json((array)$result, 400);
+        }
+
+        if ($result->getData()) {
+            return response()->json($result->getData(), 200);
+        }
+
+        return response(null, 204);
     }
 
     /**
      * Exclui um registro
-     * @param $id
+     * @param $uuid
      * @param Request $request
      * @return mixed
      */
-    public function excluir($id, Request $request)
+    public function excluir($uuid, Request $request)
     {
-        return $this->application->delete($id);
+        $result = $this->application->delete($uuid);
+
+        if (!$result->isResult() && !$result->getMessage()) {
+            return response('', 404);
+        }
+
+        if (!$result->isResult() && $result->getMessage()) {
+            return response()->json((array)$result, 400);
+        }
+
+        return response()->json($result->getData(), 204);
     }
 
     /**
@@ -86,6 +146,8 @@ class AbstractController extends Controller
      */
     public function listarOptions(Request $request)
     {
-        return $this->application->listOptions($request);
+        $result = $this->application->listOptions($request);
+
+        return response()->json($result->getData());
     }
 }

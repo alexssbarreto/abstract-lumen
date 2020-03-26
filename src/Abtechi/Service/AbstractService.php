@@ -16,23 +16,6 @@ abstract class AbstractService
 {
 
     /**
-     * Estrutura de dados para options
-     * @var array
-     */
-    protected $optionsParam = [
-        'option' => 'id',
-        'value' => 'id'
-    ];
-
-    /**
-     * Ordenação nan listagem de conteúdo
-     * @var array
-     */
-    protected $orderParam = [
-        'id' => 'DESC'
-    ];
-
-    /**
      * Acesso ao serviço Repository
      * @var AbstractRepository
      */
@@ -79,7 +62,7 @@ abstract class AbstractService
     {
         $result = $this->repository->findUuid($uuid);
 
-        if ($result->count()) {
+        if ($result) {
             return new Result(true, null, $result);
         }
 
@@ -88,87 +71,87 @@ abstract class AbstractService
 
     /**
      * Recupera todos os registros
-     * @param Request $request
+     *
+     * @param array $params
+     * @param array $order
+     * @param int $pageSize
+     * @param bool $pagination
      * @return Result
      */
-    public function findAll(Request $request, $pagination = true)
+    public function findAll(array $params, array $order = [], $pagination = true, $pageSize = 15)
     {
-        $pageSize = null;
-        if ($request->has('page_size')) {
-            $pageSize = $request->get('page_size');
-        }
-
-        $params = $request->except(['page_number', 'page_size']) ? $request->except(['page_number', 'page_size']) : ['*'];
-
-        $result = $this->repository->findAll($params, $pageSize, $pagination, $this->orderParam);
+        $result = $this->repository->findAll($params, $order, $pagination, $pageSize);
 
         return new Result(true, null, $result);
     }
 
     /**
      * Cadastra um novo registro
-     * @param Request $request
+     * @param array $data
      * @return Result
      */
-    public function create(Request $request)
+    public function create(array $data)
     {
-        $validate = $this->validateCreate($request);
+        $validate = $this->validateCreate($data);
 
         if (!$validate->isResult()) {
             return $validate;
         }
 
-        $row = new $this->repository::$model;
-        $row = $this->prepareStatementAttr($row, $request->post());
+        $row = $this->repository->getModel();
+        $row = new $row();
 
-        $result = $this->repository->add($row);
+        $row = $this->prepareStatementAttr($row, $data);
 
-        if (!$result) {
-            return new Result(false);
+        $result = $this->repository->add($row, $data);
+
+        if ($result) {
+            return new Result(true, null, $result);
         }
 
-        return new Result(true, null, $result);
+        return new Result(false);
     }
 
-    /**
+    /***
      * Atualiza um registro
-     * @param $id
-     * @param Request $request
+     * @param $uuid
+     * @param array $data
      * @return Result
      */
-    public function update($id, Request $request)
+    public function update($uuid, array $data)
     {
-        $validate = $this->validateUpdate($request);
+        $validate = $this->validateUpdate($data);
 
         if (!$validate->isResult()) {
             return $validate;
         }
 
-        $row = $this->repository->find($id);
+        /** @var Model $row */
+        $row = $this->repository->findUuid($uuid);
 
         if (!$row) {
             return new Result(false);
         }
 
-        $row = $this->prepareStatementAttr($row, $request->post());
+        $row = $this->prepareStatementAttr($row, $data);
 
-        $result = $this->repository->update($row);
+        $result = $this->repository->update($row, $data);
 
-        if (!$result) {
-            return new Result(false, 'Não foi possível atualizar o registro.');
+        if ($result) {
+            return new Result(true, null, $result);
         }
 
-        return new Result(true, null, $result);
+        return new Result(false, 'Não foi possível atualizar o registro.');
     }
 
     /**
      * Deleta uma registro
-     * @param $id
+     * @param $uuid
      * @return Result
      */
-    public function delete($id)
+    public function delete($uuid)
     {
-        $row = $this->repository->find($id);
+        $row = $this->repository->findUuid($uuid);
 
         if (!$row) {
             return new Result(false);
@@ -185,39 +168,41 @@ abstract class AbstractService
 
     /**
      * Realiza validações para criação de dados
-     * @param Request $request
+     * @param array $data
      * @return Result
      */
-    public function validateCreate(Request &$request)
+    public function validateCreate(array &$data)
     {
         return new Result(true);
     }
 
     /**
      * Realiza validações para atualização de dados
-     * @param Request $request
+     * @param array $data
      * @return Result
      */
-    public function validateUpdate(Request &$request)
+    public function validateUpdate(array &$data)
     {
-        return $this->validateCreate($request);
+        return $this->validateCreate($data);
     }
 
-    /**
+    /***
      * Prepara estrutura de dados para opções: chave => valor
-     * @param Request $request
+     * @param array $params
+     * @param array $options
+     * @param array $order
      * @return Result
      * @throws \Exception
      */
-    public function listarOptions(Request $request)
+    public function listarOptions(array $params, array $options, array $order = [])
     {
-        $result = $this->findAll($request, false);
+        $result = $this->findAll($params, $order, false);
 
         if (!$result->isResult()) {
             return new Result(true, null, []);
         }
 
-        if (!is_array($this->optionsParam) || count($this->optionsParam) !== 2) {
+        if (count($options) !== 2) {
             throw new \Exception('Obrigatório que a configuração dos parâmetros dos options seja um array [option => option, value => value]');
         }
 
@@ -225,17 +210,17 @@ abstract class AbstractService
 
         /** @var Model $row */
         foreach ($result->getData() as $row) {
-            if (!$row->getAttribute($this->optionsParam['value'])) {
+            if (!$row->getAttribute($options['value'])) {
                 throw new \Exception('O value option não existe no $optionsParam["value"]');
             }
 
-            if (!$row->getAttribute($this->optionsParam['option'])) {
+            if (!$row->getAttribute($options['option'])) {
                 throw new \Exception('O value option não existe no $optionsParam["option"]');
             }
 
             $aResult[] = [
-                'value'  => $row->{$this->optionsParam['value']},
-                'option' => $row->{$this->optionsParam['option']}
+                'value'  => $row->{$options['value']},
+                'option' => $row->{$options['option']}
             ];
         }
 
