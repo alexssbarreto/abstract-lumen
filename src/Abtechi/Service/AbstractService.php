@@ -90,7 +90,7 @@ abstract class AbstractService
      * @param array $data
      * @return Result
      */
-    public function create(array $data)
+    public function create($uuid = null, array $data)
     {
         $validate = $this->validateCreate($data);
 
@@ -147,9 +147,10 @@ abstract class AbstractService
     /**
      * Deleta uma registro
      * @param $uuid
+     * @param array $data
      * @return Result
      */
-    public function delete($uuid)
+    public function delete($uuid, array $data = [])
     {
         $row = $this->repository->findUuid($uuid);
 

@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 class AbstractController extends Controller
 {
 
-
     protected $application;
 
     protected $validator = AbstractValidator::class;
@@ -32,15 +31,11 @@ class AbstractController extends Controller
      * Lista um ou todos os registros
      * @param null $uuid
      * @param Request $request
-     * @return mixed
+     * @return \Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
      */
     public function listar($uuid = null, Request $request)
     {
-        if ($uuid) {
-            $result = $this->application->findUuid($uuid);
-        } else {
-            $result = $this->application->findAll($request);
-        }
+        $result = $this->application->findAll($request);
 
         if ($result->isResult()) {
             return response($result->getData(), 200);
@@ -49,20 +44,21 @@ class AbstractController extends Controller
         return response($result->getData(), 404);
     }
 
+    /**
+     * Visualizar um determinado registro
+     * @param null $uuid
+     * @param Request $request
+     * @return \Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
+     */
     public function visualizar($uuid = null, Request $request)
     {
-        die('oi');
+        $result = $this->application->visualizar($uuid, $request);
 
-        echo '<pre>';
-        var_dump(func_num_args());
-        var_dump($request->all());
-        var_dump($request->get); die('aqui');
-
-        if ($uuid) {
-            return $this->application->findUuid($uuid);
+        if ($result->isResult()) {
+            return response($result->getData(), 200);
         }
 
-        return $this->application->findAll($request);
+        return response($result->getData(), 404);
     }
 
     /**
@@ -126,7 +122,7 @@ class AbstractController extends Controller
      */
     public function excluir($uuid, Request $request)
     {
-        $result = $this->application->delete($uuid);
+        $result = $this->application->delete($uuid, $request);
 
         if (!$result->isResult() && !$result->getMessage()) {
             return response('', 404);

@@ -85,7 +85,7 @@ abstract class AbstractApplication
      */
     public function create(Request $request)
     {
-        return $this->service->create($request->post());
+        return $this->service->create($request->route('uuid'), $request->post());
     }
 
     /***
@@ -100,13 +100,25 @@ abstract class AbstractApplication
     }
 
     /**
-     * Deleta uma registro
+     * Visualiza um registro
      * @param $uuid
+     * @param Request $request
      * @return Result
      */
-    public function delete($uuid)
+    public function visualizar($uuid, Request $request)
     {
-        return $this->service->delete($uuid);
+        return $this->service->findUuid($uuid);
+    }
+
+    /**
+     * Exclui um registro
+     * @param $uuid
+     * @param Request $request
+     * @return Result
+     */
+    public function delete($uuid, Request $request)
+    {
+        return $this->service->delete($uuid, $request->all());
     }
 
     /**
