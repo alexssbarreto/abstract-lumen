@@ -7,7 +7,7 @@ use Abtechi\Laravel\Validators\AbstractValidator;
 use Laravel\Lumen\Routing\Controller;
 use Illuminate\Http\Request;
 
-class AbstractController extends Controller
+class AbstractControllerApi extends Controller
 {
 
     protected $application;
@@ -15,7 +15,7 @@ class AbstractController extends Controller
     protected $validator = AbstractValidator::class;
 
     /**
-     * AbstractController constructor.
+     * AbstractControllerApi constructor.
      * @param $application
      */
     public function __construct(AbstractApplication $application)

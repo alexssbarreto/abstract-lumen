@@ -1,12 +1,12 @@
 {
-  "name": "abtechi/abstract-laravel-lumen",
-  "description": "Abstract architecture in Laravel Lumen",
+  "name": "abtechi/abstract-laravel",
+  "description": "Abstract architecture in Laravel",
   "keywords": [
     "laravel",
     "lumen",
     "architecture"
   ],
-  "homepage": "https://github.com/abtechi/abstract-laravel-lumen",
+  "homepage": "https://github.com/abtechi/abstract-laravel",
   "license": "MIT",
   "authors": [
     {
