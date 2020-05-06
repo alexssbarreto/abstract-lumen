@@ -19,6 +19,8 @@ abstract class AbstractRepository
 
     protected $page = 1;
 
+    protected $withSelect = false;
+
     /** @var Model */
     public static $model = Model::class;
 
@@ -37,6 +39,10 @@ abstract class AbstractRepository
      */
     public function find($id)
     {
+        if ($this->withSelect) {
+            return static::$model::with($this->withSelect)->find($id);
+        }
+
         return static::$model::find($id);
     }
 
@@ -47,6 +53,10 @@ abstract class AbstractRepository
      */
     public function findUuid($uuid)
     {
+        if ($this->withSelect) {
+            return static::$model::with($this->withSelect)->firstWhere('uuid', $uuid);
+        }
+
         return static::$model::firstWhere('uuid', $uuid);
     }
 
@@ -109,7 +119,11 @@ abstract class AbstractRepository
 
         if ($params) {
             foreach ($params as $key => $value) {
-                if (Schema::hasColumn($model->getTable(), $key)) {
+                if (is_array($value)) {
+                    $querySelect = $querySelect->where($key, key($value), value($value));
+
+                    continue;
+                } elseif (Schema::hasColumn($model->getTable(), $key)) {
                     if ($this->hasAttributeDescribe($key, $describe, true)) {
                         $querySelect = $querySelect->where($key, 'LIKE', '%' . $value . '%');
 
@@ -132,10 +146,21 @@ abstract class AbstractRepository
         }
 
         if ($pagination) {
+            if ($this->withSelect) {
+                return $querySelect->with($this->withSelect)->paginate($pageSize);
+            }
             return $querySelect->simplePaginate($pageSize);
         }
 
-        return $querySelect->get();
+        if ($this->withSelect) {
+            return [
+                'data' => $querySelect->with($this->withSelect)->get()
+            ];
+        }
+
+        return [
+            'data' => $querySelect->get()
+        ];
     }
 
     /**

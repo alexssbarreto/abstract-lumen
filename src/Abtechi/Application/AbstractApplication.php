@@ -13,6 +13,8 @@ use Illuminate\Http\Request;
  */
 abstract class AbstractApplication
 {
+    protected $paginator = true;
+
     /**
      * Estrutura de dados para options
      * @var array
@@ -69,13 +71,25 @@ abstract class AbstractApplication
     public function findAll(Request $request)
     {
         $params = $request->except('page_number', 'page', 'page_size');
-
         $pageNumber = 15;
         if ($request->has('page_number')) {
             $pageNumber = $request->input('page_number');
         }
+        if ($request->has('order')) {
+            if ($request->has('descending')) {
+                $orderBy = json_decode($request->input('descending')) ? 'desc' : 'asc';
+            } else {
+                $orderBy = 'asc';
+            }
+            $this->orderParam = [
+                $request->input('order') => $orderBy
+            ];
+        }
+        if ($request->has('no_paginator') && $request->get('no_paginator') === 'true') {
+            $this->paginator = false;
+        }
 
-        return $this->service->findAll($params, $this->orderParam, true, $pageNumber);
+        return $this->service->findAll($params, $this->orderParam, $this->paginator, $pageNumber);
     }
 
     /**

@@ -5,6 +5,7 @@ namespace Abtechi\Laravel\Service;
 use Abtechi\Laravel\Repository\AbstractRepository;
 use Abtechi\Laravel\Result;
 use Abtechi\Laravel\Validators\AbstractValidator;
+use Abtechi\Middleware\Usuario;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 
@@ -80,7 +81,15 @@ abstract class AbstractService
      */
     public function findAll(array $params, array $order = [], $pagination = true, $pageSize = 15)
     {
-        $result = $this->repository->findAll($params, $order, $pagination, $pageSize);
+        $params = $this->prepareStatementSearch($params);
+
+        if (key_exists(key($order), static::$validator::$attributes)) {
+            $orderBy[static::$validator::$attributes[key($order)]] = $order[key($order)];
+        } else {
+            $orderBy = [];
+        }
+
+        $result = $this->repository->findAll($params, $orderBy, $pagination, $pageSize);
 
         return new Result(true, null, $result);
     }
@@ -210,7 +219,7 @@ abstract class AbstractService
         $aResult = [];
 
         /** @var Model $row */
-        foreach ($result->getData() as $row) {
+        foreach ($result->getData()['data'] as $row) {
             if (!$row->getAttribute($options['value'])) {
                 throw new \Exception('O value option não existe no $optionsParam["value"]');
             }
@@ -221,7 +230,7 @@ abstract class AbstractService
 
             $aResult[] = [
                 'value'  => $row->{$options['value']},
-                'option' => $row->{$options['option']}
+                'label' => $row->{$options['option']}
             ];
         }
 
@@ -234,14 +243,47 @@ abstract class AbstractService
      * @param array $data
      * @return Model
      */
-    private function prepareStatementAttr(Model $model, array $data)
+    protected function prepareStatementAttr(Model $model, array $data)
     {
+        $attributes = static::$validator::$attributes;
+
         foreach ($data as $attribute => $value) {
-            if (in_array($attribute, static::$validator::$attributes)) {
-                $model->{$attribute} = trim($value);
+            if (key_exists($attribute, $attributes)) {
+                $attributeModel = $attributes[$attribute] ? $attributes[$attribute] : $attribute;
+
+                if (is_string($value)) {
+                    $model->{$attributeModel} = trim($value);
+                } else {
+                    $model->{$attributeModel} = $value;
+                }
             }
         }
 
         return $model;
+    }
+
+    /**
+     * Prepara estrutura de dados para pesquisa de dados
+     * @param array $data
+     * @return array
+     */
+    protected function prepareStatementSearch(array $data)
+    {
+        $attributes = static::$validator::$attributes;
+        $aSearch = [];
+
+        foreach ($data as $attribute => $value) {
+            if (key_exists($attribute, $attributes)) {
+                $attributeSearch = $attributes[$attribute] ? $attributes[$attribute] : $attribute;
+
+                if (is_string($value)) {
+                    $aSearch[$attributeSearch] = trim($value);
+                } else {
+                    $aSearch[$attributeSearch] = $value;
+                }
+            }
+        }
+
+        return $aSearch;
     }
 }

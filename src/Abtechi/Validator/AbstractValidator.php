@@ -24,6 +24,10 @@ abstract class AbstractValidator
 
     public static $messages = [
         'required' => 'Atributo é obrigatório.',
-        'email' => 'E-mail inválido.'
+        'email' => 'E-mail inválido.',
+        'string' => 'Formato aceito: apenas String.',
+        'integer' => 'Formato aceito: apenas Inteiro.',
+        'int' => 'Formato aceito: apenas Inteiro.',
+        'boolean' => 'Formato aceito: apenas boleano (true or false).',
     ];
 }
