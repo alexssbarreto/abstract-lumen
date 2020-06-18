@@ -21,7 +21,7 @@
   "require": {
     "php": ">=5.4.0",
     "laravel/lumen-framework": "^7.0",
-    "guzzlehttp/guzzle": "^7"
+    "guzzlehttp/guzzle": "^6"
   },
   "require-dev": {
   },
