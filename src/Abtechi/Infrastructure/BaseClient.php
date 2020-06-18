@@ -2,6 +2,7 @@
 
 namespace Abtechi\Laravel\Infrastructure;
 
+use Abtechi\Laravel\Result;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
@@ -151,13 +152,10 @@ abstract class BaseClient
     /**
      * @param $url
      * @return \Psr\Http\Message\ResponseInterface
-     * @throws \Exception
      */
     public function post($url)
     {
-        $url = $this->prepareUrl($url);
-
-        return $this->client->post($url, $this->guzzleParams);
+        return $this->send($url, 'post', $this->guzzleParams);
     }
 
     /**
@@ -166,14 +164,12 @@ abstract class BaseClient
      */
     public function put($url)
     {
-        $url = $this->prepareUrl($url);
-
-        return $this->client->put($url, $this->guzzleParams);
+        return $this->send($url, 'put', $this->guzzleParams);
     }
 
     /**
      * @param $url
-     * @return \Psr\Http\Message\ResponseInterface
+     * @return Result
      */
     public function get($url)
     {
@@ -182,7 +178,7 @@ abstract class BaseClient
 
     /**
      * @param $url
-     * @return \Psr\Http\Message\ResponseInterface
+     * @return Result
      */
     public function delete($url)
     {
@@ -193,7 +189,7 @@ abstract class BaseClient
      * @param $url
      * @param $method
      * @param $parameters
-     * @return null|\Psr\Http\Message\ResponseInterface
+     * @return Result
      */
     private function send($url, $method, $parameters)
     {
@@ -207,10 +203,10 @@ abstract class BaseClient
         } catch (ConnectException $e) {
             throw new UnableToExecuteRequestException();
         } catch (RequestException $e) {
-            return $e->getResponse();
+            return new Result(false, $e->getMessage(), $e->getResponse());
         }
 
-        return $this->presenterResponse($response);
+        return new Result(true, null, $this->presenterResponse($response));
     }
 
     /**

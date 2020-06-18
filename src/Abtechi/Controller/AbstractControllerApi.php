@@ -35,13 +35,17 @@ class AbstractControllerApi extends Controller
      */
     public function listar($uuid = null, Request $request)
     {
+        $request->merge([
+            'uuid' => $uuid
+        ]);
+
         $result = $this->application->findAll($request);
 
         if ($result->isResult()) {
-            return response($result->getData(), 200);
+            return response()->json($result->getData(), 200);
         }
 
-        return response($result->getData(), 404);
+        return response()->json($result->getMessage(), 200);
     }
 
     /**
@@ -55,10 +59,10 @@ class AbstractControllerApi extends Controller
         $result = $this->application->visualizar($uuid, $request);
 
         if ($result->isResult()) {
-            return response($result->getData(), 200);
+            return response()->json($result->getData(), 200);
         }
 
-        return response($result->getData(), 404);
+        return response()->json($result->getData(), 404);
     }
 
     /**
@@ -72,11 +76,7 @@ class AbstractControllerApi extends Controller
 
         $result = $this->application->create($request);
 
-        if (!$result->isResult() && !$result->getMessage()) {
-            return response('', 404);
-        }
-
-        if (!$result->isResult() && $result->getMessage()) {
+        if (!$result->isResult()) {
             return response()->json((array)$result, 400);
         }
 
@@ -84,7 +84,7 @@ class AbstractControllerApi extends Controller
             return response()->json($result->getData(), 201);
         }
 
-        return response(null, 204);
+        return response()->json(null, 204);
     }
 
     /**
@@ -99,19 +99,15 @@ class AbstractControllerApi extends Controller
 
         $result = $this->application->update($uuid, $request);
 
-        if (!$result->isResult() && !$result->getMessage()) {
-            return response('', 404);
-        }
-
-        if (!$result->isResult() && $result->getMessage()) {
+        if (!$result->isResult()) {
             return response()->json((array)$result, 400);
         }
 
         if ($result->getData()) {
-            return response()->json($result->getData(), 200);
+            return response()->json($result->getData(), 201);
         }
 
-        return response(null, 204);
+        return response()->json(null, 204);
     }
 
     /**

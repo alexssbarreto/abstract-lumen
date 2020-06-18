@@ -2,6 +2,7 @@
 
 namespace Abtechi\Laravel\Repository;
 
+use Abtechi\Laravel\Result;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -24,6 +25,10 @@ abstract class AbstractRepository
     /** @var Model */
     public static $model = Model::class;
 
+    private $describeModel;
+    private $objectModel;
+    protected $querySelect;
+
     private $describesText = [
         'varchar',
         'text',
@@ -39,11 +44,13 @@ abstract class AbstractRepository
      */
     public function find($id)
     {
+        $model = static::$model;
+
         if ($this->withSelect) {
-            return static::$model::with($this->withSelect)->find($id);
+            return $model::with($this->withSelect)->find($id);
         }
 
-        return static::$model::find($id);
+        return $model::find($id);
     }
 
     /**
@@ -53,11 +60,13 @@ abstract class AbstractRepository
      */
     public function findUuid($uuid)
     {
+        $model = static::$model;
+
         if ($this->withSelect) {
-            return static::$model::with($this->withSelect)->firstWhere('uuid', $uuid);
+            return $model::with($this->withSelect)->firstWhere('uuid', $uuid);
         }
 
-        return static::$model::firstWhere('uuid', $uuid);
+        return $model::firstWhere('uuid', $uuid);
     }
 
     /**
@@ -70,29 +79,31 @@ abstract class AbstractRepository
     }
 
     /**
-     * Cadastra um novo registro
+     * Adiciona novo registro
      * @param Model $model
-     * @return Model
+     * @param array $data
+     * @return Result
      */
     public function add(Model $model, array $data = [])
     {
         $model->save();
         $model->refresh();
 
-        return $model;
+        return new Result(true, null, $model);
     }
 
     /**
-     * Atualiza um registro
+     * Atualiza registro
      * @param Model $model
-     * @return Model
+     * @param array $data
+     * @return Result
      */
     public function update(Model $model, array $data = [])
     {
         $model->save();
         $model->refresh();
 
-        return $model;
+        return new Result(true, null, $model);
     }
 
     /**
@@ -111,55 +122,31 @@ abstract class AbstractRepository
         }
 
         /** @var Model $model */
-        $model = new static::$model;
+        $this->objectModel = new static::$model;
+        $this->describeModel();
+        $this->querySelect = clone $this->objectModel;
 
-        $describe = DB::select('describe ' . $model->getTable());
-
-        $querySelect = clone $model;
-
-        if ($params) {
-            foreach ($params as $key => $value) {
-                if (is_array($value)) {
-                    $querySelect = $querySelect->where($key, key($value), value($value));
-
-                    continue;
-                } elseif (Schema::hasColumn($model->getTable(), $key)) {
-                    if ($this->hasAttributeDescribe($key, $describe, true)) {
-                        $querySelect = $querySelect->where($key, 'LIKE', '%' . $value . '%');
-
-                        continue;
-                    }
-
-                    $querySelect = $querySelect->where($key, $value);
-                }
-            }
-        }
+        $this->querySelect = $this->querySelect($params);
 
         if ($order) {
-            foreach ($order as $key => $option) {
-                if (!$this->hasAttributeDescribe($key, $describe)) {
-                    throw new \Exception(sprintf('Atibuto de ordenação não existe: %s', $key));
-                }
-
-                $querySelect = $querySelect->orderBy($key, $option);
-            }
+            $this->querySelect = $this->orderBy($order);
         }
 
         if ($pagination) {
             if ($this->withSelect) {
-                return $querySelect->with($this->withSelect)->paginate($pageSize);
+                return $this->querySelect->with($this->withSelect)->paginate($pageSize);
             }
-            return $querySelect->simplePaginate($pageSize);
+            return $this->querySelect->paginate($pageSize);
         }
 
         if ($this->withSelect) {
             return [
-                'data' => $querySelect->with($this->withSelect)->get()
+                'data' => $this->querySelect->with($this->withSelect)->get()
             ];
         }
 
         return [
-            'data' => $querySelect->get()
+            'data' => $this->querySelect->get()
         ];
     }
 
@@ -181,7 +168,7 @@ abstract class AbstractRepository
      */
     private function hasAttributeDescribe($attribute, array $describe, $verifyIsText = false)
     {
-        $hasAttribute = array_filter($describe, function($column) use($attribute, $verifyIsText){
+        $hasAttribute = array_filter($describe, function ($column) use ($attribute, $verifyIsText) {
             if ($attribute == $column->Field) {
                 if (!$verifyIsText) {
                     return true;
@@ -200,5 +187,77 @@ abstract class AbstractRepository
         }
 
         return false;
+    }
+
+    /**
+     * Descreve os attributes do Model
+     * @return array
+     */
+    protected function describeModel()
+    {
+        $this->describeModel = DB::select('describe ' . $this->objectModel->getTable());
+    }
+
+    /**
+     * Prepara estrutura de dados para query
+     * @param array $params
+     * @return mixed
+     */
+    protected function querySelect(array $params)
+    {
+        $this->querySelect = $this->preQuerySelect($params);
+
+        foreach ($params as $key => $value) {
+            if (Schema::hasColumn($this->objectModel->getTable(), $key) && is_string($value)) {
+                if ($this->hasAttributeDescribe($key, $this->describeModel, true)) {
+                    $this->querySelect = $this->querySelect->where($key, 'LIKE', '%' . $value . '%');
+
+                    continue;
+                }
+
+                $this->querySelect = $this->querySelect->where($key, $value);
+            }
+        }
+
+        return $this->querySelect;
+    }
+
+    /**
+     * Pré-processa querySelect
+     * @param array $params
+     * @return mixed
+     */
+    protected function preQuerySelect(array $params)
+    {
+        return $this->querySelect;
+    }
+
+    /**
+     * Ordena resultado da listagem
+     * @param array $order
+     * @return mixed
+     * @throws \Exception
+     */
+    protected function orderBy(array $order)
+    {
+        $querySelect = $this->querySelect;
+
+        foreach ($order as $key => $option) {
+            if (!$this->hasAttributeDescribe($key, $this->describeModel)) {
+                throw new \Exception(sprintf('Atibuto de ordenação não existe: %s', $key));
+            }
+
+            $querySelect = $querySelect->orderBy($key, $option);
+        }
+
+        return $querySelect;
+    }
+
+    /**
+     * @return mixed|Model
+     */
+    protected function getQuerySelect()
+    {
+        return $this->querySelect;
     }
 }

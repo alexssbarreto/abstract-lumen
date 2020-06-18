@@ -83,8 +83,10 @@ abstract class AbstractService
     {
         $params = $this->prepareStatementSearch($params);
 
-        if (key_exists(key($order), static::$validator::$attributes)) {
-            $orderBy[static::$validator::$attributes[key($order)]] = $order[key($order)];
+        $validator = static::$validator;
+
+        if (key_exists(key($order), $validator::$attributes)) {
+            $orderBy[$validator::$attributes[key($order)]] = $order[key($order)];
         } else {
             $orderBy = [];
         }
@@ -107,18 +109,17 @@ abstract class AbstractService
             return $validate;
         }
 
+        $validatePos = $this->posValidateCreate($data);
+
+        if (!$validatePos->isResult()) {
+            return $validatePos;
+        }
+
         $row = $this->repository->getModel();
         $row = new $row();
 
-        $row = $this->prepareStatementAttr($row, $data);
-
-        $result = $this->repository->add($row, $data);
-
-        if ($result) {
-            return new Result(true, null, $result);
-        }
-
-        return new Result(false);
+        $row->fill($data);
+        return $this->repository->add($row, $data);
     }
 
     /***
@@ -129,12 +130,6 @@ abstract class AbstractService
      */
     public function update($uuid, array $data)
     {
-        $validate = $this->validateUpdate($data);
-
-        if (!$validate->isResult()) {
-            return $validate;
-        }
-
         /** @var Model $row */
         $row = $this->repository->findUuid($uuid);
 
@@ -142,15 +137,20 @@ abstract class AbstractService
             return new Result(false);
         }
 
-        $row = $this->prepareStatementAttr($row, $data);
+        $validate = $this->validateUpdate($data, $row);
 
-        $result = $this->repository->update($row, $data);
-
-        if ($result) {
-            return new Result(true, null, $result);
+        if (!$validate->isResult()) {
+            return $validate;
         }
 
-        return new Result(false, 'Não foi possível atualizar o registro.');
+        $validatePos = $this->posValidateUpdate($data);
+
+        if (!$validatePos->isResult()) {
+            return $validatePos;
+        }
+
+        $row->fill($data);
+        return $this->repository->update($row, $data);
     }
 
     /**
@@ -183,17 +183,36 @@ abstract class AbstractService
      */
     public function validateCreate(array &$data)
     {
-        return new Result(true);
+        return new Result(true, null, $data);
+    }
+
+    /**
+     * @param array $data
+     * @return Result
+     */
+    public function posValidateCreate(array &$data)
+    {
+        return new Result(true, null, $data);
     }
 
     /**
      * Realiza validações para atualização de dados
      * @param array $data
+     * @param Model|null $model
      * @return Result
      */
-    public function validateUpdate(array &$data)
+    public function validateUpdate(array &$data, Model $model)
     {
         return $this->validateCreate($data);
+    }
+
+    /**
+     * @param array $data
+     * @return Result
+     */
+    public function posValidateUpdate(array &$data)
+    {
+        return $this->posValidateCreate($data);
     }
 
     /***
@@ -238,38 +257,14 @@ abstract class AbstractService
     }
 
     /**
-     * Prepara estrutura do modelo de dados
-     * @param Model $model
-     * @param array $data
-     * @return Model
-     */
-    protected function prepareStatementAttr(Model $model, array $data)
-    {
-        $attributes = static::$validator::$attributes;
-
-        foreach ($data as $attribute => $value) {
-            if (key_exists($attribute, $attributes)) {
-                $attributeModel = $attributes[$attribute] ? $attributes[$attribute] : $attribute;
-
-                if (is_string($value)) {
-                    $model->{$attributeModel} = trim($value);
-                } else {
-                    $model->{$attributeModel} = $value;
-                }
-            }
-        }
-
-        return $model;
-    }
-
-    /**
      * Prepara estrutura de dados para pesquisa de dados
      * @param array $data
      * @return array
      */
     protected function prepareStatementSearch(array $data)
     {
-        $attributes = static::$validator::$attributes;
+        $validator = static::$validator;
+        $attributes = $validator::$attributes;
         $aSearch = [];
 
         foreach ($data as $attribute => $value) {

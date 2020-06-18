@@ -29,5 +29,10 @@ abstract class AbstractValidator
         'integer' => 'Formato aceito: apenas Inteiro.',
         'int' => 'Formato aceito: apenas Inteiro.',
         'boolean' => 'Formato aceito: apenas boleano (true or false).',
+        'uuid' => 'Formato aceito: apenas UUID',
+        'date' => 'Formato de data inválido: yyyy-mm-dd',
+        'confirmed' => 'Dados :attribute não são iguais',
+        'min' => 'Mínimo de caracteres :min',
+        'max' => 'Máximo de caracteres :max',
     ];
 }

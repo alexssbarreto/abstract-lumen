@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
  */
 abstract class AbstractApplication
 {
+
     protected $paginator = true;
 
     /**
@@ -41,6 +42,9 @@ abstract class AbstractApplication
     public function __construct(AbstractService $service)
     {
         $this->service = $service;
+
+        $this->traitVisao();
+        $this->traitPapel();
     }
 
     /**
@@ -89,6 +93,16 @@ abstract class AbstractApplication
             $this->paginator = false;
         }
 
+        $result = $this->preListAll($params);
+        if (!$result->isResult()) {
+            return $result;
+        }
+
+        $resultPos = $this->posListAll($params);
+        if (!$resultPos->isResult()) {
+            return $resultPos;
+        }
+
         return $this->service->findAll($params, $this->orderParam, $this->paginator, $pageNumber);
     }
 
@@ -99,7 +113,7 @@ abstract class AbstractApplication
      */
     public function create(Request $request)
     {
-        return $this->service->create($request->route('uuid'), $request->post());
+        return $this->service->create($request->route('uuid'), $request->all());
     }
 
     /***
@@ -110,7 +124,7 @@ abstract class AbstractApplication
      */
     public function update($uuid, Request $request)
     {
-        return $this->service->update($uuid, $request->post());
+        return $this->service->update($uuid, $request->all());
     }
 
     /**
@@ -142,6 +156,66 @@ abstract class AbstractApplication
      */
     public function listOptions(Request $request)
     {
-        return $this->service->listarOptions($request->all(), $this->optionsParam, $this->orderParam);
+        $params = $request->all();
+
+        $result = $this->preListOptions($params);
+        if (!$result->isResult()) {
+            return $result;
+        }
+
+        $resultPos = $this->posListOptions($params);
+        if (!$resultPos->isResult()) {
+            return $resultPos;
+        }
+
+        return $this->service->listarOptions($params, $this->optionsParam, $this->orderParam);
+    }
+
+    /**
+     * Pré-processa o lista all
+     * @param array $params
+     * @return Result
+     */
+    protected function preListAll(array &$params)
+    {
+        return new Result(true, null, $params);
+    }
+
+    /**
+     * @param array $params
+     * @return Result
+     */
+    protected function posListAll(array &$params)
+    {
+        return new Result(true, null, $params);
+    }
+
+    /**
+     * Pré-processa o list options
+     * @param array $params
+     * @return Result
+     */
+    protected function preListOptions(array &$params)
+    {
+        return $this->preListAll($params);
+    }
+
+    /**
+     * @param array $params
+     * @return Result
+     */
+    protected function posListOptions(array &$params)
+    {
+        return $this->posListAll($params);
+    }
+
+    protected function traitVisao()
+    {
+
+    }
+
+    protected function traitPapel()
+    {
+
     }
 }
