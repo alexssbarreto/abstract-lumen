@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Providers;
+namespace App\Laravel\Providers;
 
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Config;

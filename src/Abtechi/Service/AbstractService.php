@@ -5,9 +5,7 @@ namespace Abtechi\Laravel\Service;
 use Abtechi\Laravel\Repository\AbstractRepository;
 use Abtechi\Laravel\Result;
 use Abtechi\Laravel\Validators\AbstractValidator;
-use Abtechi\Middleware\Usuario;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request;
 
 /**
  * Class AbstractService
