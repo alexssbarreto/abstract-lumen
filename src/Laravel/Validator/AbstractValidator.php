@@ -1,6 +1,6 @@
 <?php
 
-namespace Abtechi\Laravel\Validators;
+namespace Abtechi\Laravel\Validator;
 
 /**
  * Classe base para realização das validações da Request
