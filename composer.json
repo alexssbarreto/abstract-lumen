@@ -29,7 +29,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Abtechi\\Laravel\\": "src/Laravel"
+      "Abtechi\\Laravel\\": "src/"
     }
   },
   "config": {
