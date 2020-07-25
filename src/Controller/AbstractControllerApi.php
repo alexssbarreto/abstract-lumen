@@ -3,7 +3,7 @@
 namespace Abtechi\Laravel\Controller;
 
 use Abtechi\Laravel\Application\AbstractApplication;
-use Abtechi\Laravel\Validators\AbstractValidator;
+use Abtechi\Laravel\Validator\AbstractValidator;
 use Laravel\Lumen\Routing\Controller;
 use Illuminate\Http\Request;
 
