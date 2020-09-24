@@ -89,7 +89,7 @@ abstract class AbstractApplication
                 $request->input('order') => $orderBy
             ];
         }
-        if ($request->has('no_paginator') && $request->get('no_paginator') === 'true') {
+        if ($request->input('no_paginator')) {
             $this->paginator = false;
         }
 

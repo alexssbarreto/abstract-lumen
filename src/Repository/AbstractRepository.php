@@ -126,7 +126,13 @@ abstract class AbstractRepository
         $this->describeModel();
         $this->querySelect = clone $this->objectModel;
 
-        $this->querySelect = $this->querySelect($params);
+        $queryRequest = $this->querySelect($params);
+
+        if (!$queryRequest->isResult()) {
+            return $queryRequest;
+        }
+
+        $this->querySelect = $queryRequest->getData();
 
         if ($order) {
             $this->querySelect = $this->orderBy($order);
@@ -134,20 +140,20 @@ abstract class AbstractRepository
 
         if ($pagination) {
             if ($this->withSelect) {
-                return $this->querySelect->with($this->withSelect)->paginate($pageSize);
+                return new Result(true, null, $this->querySelect->with($this->withSelect)->paginate($pageSize));
             }
-            return $this->querySelect->paginate($pageSize);
+            return new Result(true, null, $this->querySelect->paginate($pageSize));
         }
 
         if ($this->withSelect) {
-            return [
+            return new Result(true, null, [
                 'data' => $this->querySelect->with($this->withSelect)->get()
-            ];
+            ]);
         }
 
-        return [
+        return new Result(true, null, [
             'data' => $this->querySelect->get()
-        ];
+        ]);
     }
 
     /**
@@ -201,11 +207,17 @@ abstract class AbstractRepository
     /**
      * Prepara estrutura de dados para query
      * @param array $params
-     * @return mixed
+     * @return Result
      */
     protected function querySelect(array $params)
     {
-        $this->querySelect = $this->preQuerySelect($params);
+        $preQuery = $this->preQuerySelect($params);
+
+        if (!$preQuery->isResult()) {
+            return $preQuery;
+        }
+
+        $this->querySelect = $preQuery->getData();
 
         foreach ($params as $key => $value) {
             if (Schema::hasColumn($this->objectModel->getTable(), $key) && is_string($value)) {
@@ -219,17 +231,17 @@ abstract class AbstractRepository
             }
         }
 
-        return $this->querySelect;
+        return new Result(true, null, $this->querySelect);
     }
 
     /**
      * Pré-processa querySelect
      * @param array $params
-     * @return mixed
+     * @return Result
      */
     protected function preQuerySelect(array $params)
     {
-        return $this->querySelect;
+        return new Result(true, null, $this->querySelect);
     }
 
     /**

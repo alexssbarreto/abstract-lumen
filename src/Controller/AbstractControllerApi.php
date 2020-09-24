@@ -3,7 +3,7 @@
 namespace Abtechi\Laravel\Controller;
 
 use Abtechi\Laravel\Application\AbstractApplication;
-use Abtechi\Laravel\Validator\AbstractValidator;
+use Abtechi\Laravel\Validators\AbstractValidator;
 use Laravel\Lumen\Routing\Controller;
 use Illuminate\Http\Request;
 
@@ -45,7 +45,7 @@ class AbstractControllerApi extends Controller
             return response()->json($result->getData(), 200);
         }
 
-        return response()->json($result->getMessage(), 200);
+        return response()->json($result, 400);
     }
 
     /**
@@ -140,6 +140,14 @@ class AbstractControllerApi extends Controller
     {
         $result = $this->application->listOptions($request);
 
-        return response()->json($result->getData());
+        if (!$result->isResult()) {
+            return response()->json((array)$result, 400);
+        }
+
+        if ($result->getData()) {
+            return response()->json($result->getData(), 200);
+        }
+
+        return response()->json(null, 200);
     }
 }

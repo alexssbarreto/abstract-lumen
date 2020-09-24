@@ -91,7 +91,7 @@ abstract class AbstractService
 
         $result = $this->repository->findAll($params, $orderBy, $pagination, $pageSize);
 
-        return new Result(true, null, $result);
+        return $result;
     }
 
     /**
