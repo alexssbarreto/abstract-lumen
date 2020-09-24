@@ -76,6 +76,22 @@ abstract class BaseClient
     }
 
     /**
+     * @return mixed
+     */
+    public function getBaseUrl()
+    {
+        return $this->baseUrl;
+    }
+
+    /**
+     * @return Client
+     */
+    public function getClient()
+    {
+        return $this->client;
+    }
+
+    /**
      * @param array $headers
      */
     public function setHeaders(array $headers)
