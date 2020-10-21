@@ -62,7 +62,7 @@ abstract class BaseClient
      * @param Response $response
      * @return mixed
      */
-    public abstract function presenterResponse(Response $response);
+    public abstract function presenterResponse(Response $response, $presenter = null);
 
     /**
      * @param $url
