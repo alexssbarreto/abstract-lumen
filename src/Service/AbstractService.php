@@ -99,7 +99,7 @@ abstract class AbstractService
      * @param array $data
      * @return Result
      */
-    public function create($uuid = null, array $data)
+    public function create($uuid = null, array $data = [])
     {
         $validate = $this->validateCreate($data);
 
@@ -126,7 +126,7 @@ abstract class AbstractService
      * @param array $data
      * @return Result
      */
-    public function update($uuid, array $data)
+    public function update($uuid, array $data = [])
     {
         /** @var Model $row */
         $row = $this->repository->findUuid($uuid);
@@ -179,7 +179,7 @@ abstract class AbstractService
      * @param array $data
      * @return Result
      */
-    public function validateCreate(array &$data)
+    public function validateCreate(array &$data = [])
     {
         return new Result(true, null, $data);
     }
@@ -188,7 +188,7 @@ abstract class AbstractService
      * @param array $data
      * @return Result
      */
-    public function posValidateCreate(array &$data)
+    public function posValidateCreate(array &$data = [])
     {
         return new Result(true, null, $data);
     }
@@ -208,7 +208,7 @@ abstract class AbstractService
      * @param array $data
      * @return Result
      */
-    public function posValidateUpdate(array &$data)
+    public function posValidateUpdate(array &$data = [])
     {
         return $this->posValidateCreate($data);
     }

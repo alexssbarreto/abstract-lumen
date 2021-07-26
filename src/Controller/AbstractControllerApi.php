@@ -33,7 +33,7 @@ class AbstractControllerApi extends Controller
      * @param Request $request
      * @return \Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
      */
-    public function listar($uuid = null, Request $request)
+    public function listar(Request $request, $uuid = null)
     {
         $request->merge([
             'uuid' => $uuid
@@ -54,7 +54,7 @@ class AbstractControllerApi extends Controller
      * @param Request $request
      * @return \Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
      */
-    public function visualizar($uuid = null, Request $request)
+    public function visualizar(Request $request, $uuid = null)
     {
         $result = $this->application->visualizar($uuid, $request);
 
@@ -93,7 +93,7 @@ class AbstractControllerApi extends Controller
      * @param Request $request
      * @return mixed
      */
-    public function editar($uuid, Request $request)
+    public function editar(Request $request, $uuid)
     {
         $this->validate($request, $this->validator::$rules, $this->validator::$messages);
 
@@ -116,7 +116,7 @@ class AbstractControllerApi extends Controller
      * @param Request $request
      * @return mixed
      */
-    public function excluir($uuid, Request $request)
+    public function excluir(Request $request, $uuid)
     {
         $result = $this->application->delete($uuid, $request);
 
