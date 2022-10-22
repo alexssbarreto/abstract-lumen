@@ -11,7 +11,7 @@
   "authors": [
     {
       "name": "Alex Barreto",
-      "homepage": "https://github.com/abtechi",
+      "homepage": "https://github.com/alexssbarreto",
       "role": "Developer"
     }
   ],
@@ -20,7 +20,7 @@
   },
   "require": {
     "php": ">=5.6.0",
-    "guzzlehttp/guzzle": "^6"
+    "guzzlehttp/guzzle": "^6.5.8"
   },
   "require-dev": {
   },
